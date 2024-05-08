@@ -1,0 +1,24 @@
+FROM alpine:3.19.1
+
+ENV HELM_VER=v3.13.1
+
+RUN    apk update \ 
+    && apk upgrade \
+    && apk --no-cache add \
+        curl \
+        git \
+        gettext \
+    && curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" \
+    && echo "$(cat kubectl.sha256)  kubectl" | sha256sum -c \
+    && install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl \
+    && curl -LO https://get.helm.sh/helm-${HELM_VER}-linux-amd64.tar.gz \
+    && tar -zxvf helm-${HELM_VER}-linux-amd64.tar.gz \
+    && mv linux-amd64/helm /usr/local/bin/helm \
+    && helm plugin install https://github.com/databus23/helm-diff \
+    && rm -rf \
+        /linux-amd64 \
+        helm-${HELM_VER}-linux-amd64.tar.gz \
+        kubectl \
+        kubectl.sha256 \
+    && rm -rf /var/cache/apk/*
